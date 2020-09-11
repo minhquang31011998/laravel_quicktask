@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Task;
+use App\Http\Requests\TaskRequest;
+use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
@@ -13,7 +16,9 @@ class TaskController extends Controller
      */
     public function index()
     {
-        //
+        $tasks = Task::all();
+
+        return view('task.index')->compact('tasks');
     }
 
     /**
@@ -23,7 +28,7 @@ class TaskController extends Controller
      */
     public function create()
     {
-        //
+        return view('task.create');
     }
 
     /**
@@ -32,9 +37,11 @@ class TaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request)
     {
-        //
+        Task::create($request->all());
+
+        return redirect()->route('tasks.index');
     }
 
     /**
@@ -45,7 +52,7 @@ class TaskController extends Controller
      */
     public function show($id)
     {
-        //
+
     }
 
     /**
@@ -56,7 +63,9 @@ class TaskController extends Controller
      */
     public function edit($id)
     {
-        //
+        $task = Task::find($id);
+
+        return view('task.edit')->compact('task');
     }
 
     /**
@@ -66,9 +75,17 @@ class TaskController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(TaskRequest $request, $id)
     {
-        //
+        try {
+            $task = Task::findOrFail($id);
+            $task->update($request->all());
+        }
+        catch (ModelNotFoundException $e) {
+            return redirect()->back();
+        }
+
+        return redirect()->route('tasks.index');
     }
 
     /**
@@ -79,6 +96,14 @@ class TaskController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $task = Task::findOrFail($id);
+            $task->delete();
+        }
+        catch (ModelNotFoundException $e) {
+            return redirect()->back();
+        }
+
+        return redirect()->back();
     }
 }

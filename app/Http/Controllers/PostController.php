@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Post;
+use App\Models\Task;
+use App\Http\Requests\PostRequest;
+use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
 {
@@ -13,7 +17,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $posts = Post::all();
+
+        return view('post.index')->compact('posts');
     }
 
     /**
@@ -23,7 +29,9 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        $tasks = Task::all();
+
+        return view('post.create')->compact('tasks');
     }
 
     /**
@@ -32,9 +40,11 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-        //
+        Post::create($request->all());
+
+        return redirect()->route('posts.index');
     }
 
     /**
@@ -45,7 +55,15 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $post = Post::findOrFail($id);
+        }
+        catch (ModelNotFoundException $e) {
+            return redirect()->back();
+        }
+        $task = $post->task()->first();
+
+        return view('post.detail')->compact(['post', 'task']);
     }
 
     /**
@@ -56,7 +74,16 @@ class PostController extends Controller
      */
     public function edit($id)
     {
-        //
+        try {
+            $post = Post::findOrFail($id);
+        }
+        catch (ModelNotFoundException $e) {
+            return redirect()->back();
+        }
+        $task = $post->task()->first();
+        $tasks = Task::all();
+
+        return view('post.edit')->compact(['post', 'task', 'tasks']);
     }
 
     /**
@@ -66,9 +93,17 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(PostRequest $request, $id)
     {
-        //
+        try {
+            $post = Post::findOrFail($id);
+            $post->update($request->all());
+        }
+        catch (ModelNotFoundException $e) {
+            return redirect()->back();
+        }
+
+        return redirect()->route('posts.index');
     }
 
     /**
@@ -79,6 +114,14 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $post = Post::findOrFail($id);
+            $post->delete();
+        }
+        catch (ModelNotFoundException $e) {
+            return redirect()->back();
+        }
+
+        return redirect()->back();
     }
 }
